@@ -26,19 +26,21 @@ int main(int argc, char *argv[]) {
     printf("Listening\n");
     time_t t = time(NULL);
     struct tm* aTm = localtime(&t);
-    FILE* hFILE = fopen("test", "w");
+
 
     while(true) {
 
         if (mySwitch.available())
         {
+            FILE* hFILE = fopen("test", "w");
             Data = mySwitch.getReceivedValue();
             T1 = Data/1000000;
             T2 = Data/1000%1000;
             T3 = Data%1000;
-            printf(hFILE,"%02d:%02d:%02d %i %i %i", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
-            fprintf(hFILE,"%02d:%02d:%02d %i %i %i", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
-           mySwitch.resetAvailable();
+            printf("%02d:%02d:%02d \n %f %f %f \n", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+            fprintf(hFILE,"%02d:%02d:%02d %f %f %f", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+            mySwitch.resetAvailable();
+            fclose(hFILE);
         }
 
         delay(100);
