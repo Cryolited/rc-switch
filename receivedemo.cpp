@@ -1,23 +1,17 @@
 #include <stdio.h>
 #include "rc-switch/RCSwitch.h"
-
+#include <time.h>
 
 int main(int argc, char *argv[]) {
 
     printf("Starting receivedemo\n");
-    printf("Make sure you have connected the 433Mhz receiver data pin to WiringPi pin 2 (real pin 13). See: https://pinout.xyz/pinout/pin13_gpio27\n");
     printf("\n");
-    
+    uint32_t Data = 0;
+    int T1,T2,T3;
     int PIN = 2; // this is pin 13, aka GPIO22 on the PI3, see https://www.element14.com/community/servlet/JiveServlet/previewBody/73950-102-10-339300/pi3_gpio.png
 
     if (wiringPiSetup () == -1) {
-        printf("ERROR: WiringPi not installed. Make sure you have WiringPi installed.\n");
-        printf("Quick tutorial:\n\n");
-        printf("    sudo apt-get install git\n");
-        printf("    cd ~/\n");
-        printf("    git clone git://git.drogon.net/wiringPi\n");
-        printf("    cd wiringPi\n");
-        printf("    ./build\n\n");
+        printf("ERROR\n");
         return 1;
     }
 
@@ -30,20 +24,21 @@ int main(int argc, char *argv[]) {
     mySwitch.enableReceive(PIN);
 
     printf("Listening\n");
+    time_t t = time(NULL);
+    struct tm* aTm = localtime(&t);
+    FILE* hFILE = fopen("test", "w");
 
     while(true) {
 
-        if (mySwitch.available()) {
-            
-            int value = mySwitch.getReceivedValue();
-            
-            if (value == 0) {
-                printf("Unknown encoding\n");
-            } else {
-                printf("Received %lu / %i bit Protocol: %i\n", mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedProtocol());
-            }
-
-            mySwitch.resetAvailable();
+        if (mySwitch.available())
+        {
+            Data = mySwitch.getReceivedValue();
+            T1 = Data/1000000;
+            T2 = Data/1000%1000;
+            T3 = Data%1000;
+            printf(hFILE,"%02d:%02d:%02d %i %i %i", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+            fprintf(hFILE,"%02d:%02d:%02d %i %i %i", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+           mySwitch.resetAvailable();
         }
 
         delay(100);
