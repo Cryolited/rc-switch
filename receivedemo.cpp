@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 
     printf("Listening\n");
     time_t tOld;
-
+    int flag=0;
     while(true) {
 
         if (mySwitch.available())
@@ -46,7 +46,19 @@ int main(int argc, char *argv[]) {
             tOld = t;
          }
         }
-
+        //________________________________________Чтение и отправка
+        FILE* Send = fopen("/var/www/html/Termo/server/Send","r");
+        if( Send != NULL && flag != 1 )
+        {
+            int64_t command;
+            fscanf(Send, "%i", &command);
+            printf("Sended : %i", command);
+            fclose(Send);
+            flag = 1;
+            //remove("/var/www/html/Termo/server/Send");
+        }
+        else
+            printf("Cannot open directory file.");
         delay(100);
     }
 }
