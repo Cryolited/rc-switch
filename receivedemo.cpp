@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include "rc-switch/RCSwitch.h"
 #include <time.h>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
 
 int main(int argc, char *argv[]) {
 
@@ -9,23 +13,25 @@ int main(int argc, char *argv[]) {
     uint32_t Data = 0;
     int T1,T2,T3;
     int PIN = 2; // this is pin 13, aka GPIO22 on the PI3, see https://www.element14.com/community/servlet/JiveServlet/previewBody/73950-102-10-339300/pi3_gpio.png
+    int PINT = 0;
 
     if (wiringPiSetup () == -1) {
         printf("ERROR\n");
         return 1;
     }
 
-    // put the PIN into no-pull/up down state:
-    // see https://github.com/ninjablocks/433Utils/issues/21
     pullUpDnControl(PIN, PUD_OFF);
 
     RCSwitch mySwitch = RCSwitch();
 
     mySwitch.enableReceive(PIN);
+    mySwitch.enableTransmit(PINT);
+    mySwitch.setProtocol(1);
 
     printf("Listening\n");
     time_t tOld;
     int flag=0;
+    uint32_t command;
     while(true) {
 
         if (mySwitch.available())
@@ -47,18 +53,16 @@ int main(int argc, char *argv[]) {
          }
         }
         //________________________________________Чтение и отправка
-        FILE* Send = fopen("/var/www/html/Termo/server/Send","r");
-        if( Send != NULL && flag != 1 )
+        ifstream fin("/var/www/html/Termo/server/Send");
+        if( fin.is_open()  )
         {
-            int64_t command;
-            fscanf(Send, "%i", &command);
-            printf("Sended : %i", command);
-            fclose(Send);
-            flag = 1;
-            //remove("/var/www/html/Termo/server/Send");
+            fin >> command;
+            cout << command << endl;
+            mySwitch.send(command, 32);
+            fin.close();
+            remove("/var/www/html/Termo/server/Send");
         }
-        else
-            printf("Cannot open directory file.");
+
         delay(100);
     }
 }
