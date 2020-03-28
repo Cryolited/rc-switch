@@ -23,10 +23,11 @@ int main(int argc, char *argv[]) {
     pullUpDnControl(PIN, PUD_OFF);
 
     RCSwitch mySwitch = RCSwitch();
+    RCSwitch mySwitchT = RCSwitch();
 
     mySwitch.enableReceive(PIN);
-    mySwitch.enableTransmit(PINT);
-    mySwitch.setProtocol(1);
+    mySwitchT.enableTransmit(PINT);
+    mySwitchT.setProtocol(1);
 
     printf("Listening\n");
     time_t tOld;
@@ -36,17 +37,34 @@ int main(int argc, char *argv[]) {
 
         if (mySwitch.available())
         {
+	//cout << "avail" <<endl;
 		time_t t = time(NULL);
 	    struct tm* aTm = localtime(&t);
          if (t != tOld)
          {
             FILE* hFILE = fopen("/var/www/html/Termo/server/Data", "w");
             Data = mySwitch.getReceivedValue();
-            T1 = Data/1000000;
-            T2 = Data/1000%1000;
-            T3 = Data%1000;
-            printf("%02d:%02d:%02d \n %.1f %.1f %.1f \n", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
-            fprintf(hFILE,"%02d:%02d:%02d %.1f %.1f %.1f", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+	    if(Data/1000000000==0)
+	    {
+              T1 = Data/1000000;
+              T2 = Data/1000%1000;
+              T3 = Data%1000;
+              printf("%02d:%02d:%02d \n %.1f %.1f %.1f \n", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+              fprintf(hFILE,"%02d:%02d:%02d %.1f %.1f %.1f", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+	    }
+	    else if(Data/1000000000==1)
+	    {
+	      T1 = Data/1000000%1000;
+              T2 = Data/1000%1000;
+              T3 = Data%1000;
+              printf("%02d:%02d:%02d \n %.1f %.1f %.1f ALARM \n", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+              fprintf(hFILE,"%02d:%02d:%02d %.1f %.1f %.1f ALARM", aTm->tm_hour, aTm->tm_min, aTm->tm_sec, T1/10.0, T2/10.0, T3/10.0);
+	    }
+	    else
+	    {
+		printf("%i \n", Data);
+ 		fprintf(hFILE,"%i", Data);
+	    }
             mySwitch.resetAvailable();
             fclose(hFILE);
             tOld = t;
@@ -58,11 +76,13 @@ int main(int argc, char *argv[]) {
         {
             fin >> command;
             cout << command << endl;
-            mySwitch.send(command, 32);
+            mySwitchT.send(command, 32);
+	    //cout << "close" << endl;
             fin.close();
+	    //cout << "remove" << endl;
             remove("/var/www/html/Termo/server/Send");
-        }
-
+	}
+	//cout << "delay" << endl;
         delay(100);
     }
 }
