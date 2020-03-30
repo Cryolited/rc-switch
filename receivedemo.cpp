@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
 	    }
 	    else
 	    {
-		printf("%i \n", Data);
- 		fprintf(hFILE,"%i", Data);
+		printf("%u \n", Data);
+ 		fprintf(hFILE,"%u", Data);
 	    }
             mySwitch.resetAvailable();
             fclose(hFILE);
